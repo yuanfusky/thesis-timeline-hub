@@ -40,7 +40,8 @@ export function JobDrawer({
         {job && application && (
           <>
             <SheetHeader className="border-b border-border px-6 py-5">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start justify-between gap-3 pr-7">
+
                 <div className="min-w-0">
                   <SheetDescription className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     {job.company} · {job.location || "—"}
