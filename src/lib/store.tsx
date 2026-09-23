@@ -249,12 +249,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addEvent,
       updateApplication,
       addCategory,
+      deleteJob,
+      deleteEvent,
       resetToSeed,
       applicationForJob: (jobId) => state.applications.find((a) => a.job_id === jobId),
       eventsFor: (applicationId) =>
         sorted.filter((e) => e.application_id === applicationId),
     };
-  }, [state, addJob, addEvent, updateApplication, addCategory, resetToSeed]);
+  }, [
+    state,
+    addJob,
+    addEvent,
+    updateApplication,
+    addCategory,
+    deleteJob,
+    deleteEvent,
+    resetToSeed,
+  ]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
