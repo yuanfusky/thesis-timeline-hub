@@ -60,6 +60,7 @@ interface StoreContextValue extends StoreState {
   addJob: (input: NewJobInput) => string;
   addEvent: (applicationId: string, input: NewEventInput) => void;
   updateApplication: (applicationId: string, patch: Partial<Application>) => void;
+  updateJob: (jobId: string, patch: Partial<Job>) => void;
   addCategory: (name: string) => void;
   deleteJob: (jobId: string) => void;
   deleteJobs: (jobIds: string[]) => void;
@@ -220,6 +221,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateJob = useCallback((jobId: string, patch: Partial<Job>) => {
+    const now = new Date().toISOString();
+    setState((s) => ({
+      ...s,
+      jobs: s.jobs.map((j) => (j.id === jobId ? { ...j, ...patch, updated_at: now } : j)),
+    }));
+  }, []);
+
   const addCategory = useCallback((name: string) => {
     const clean = name.trim();
     if (!clean) return;
@@ -293,6 +302,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addJob,
       addEvent,
       updateApplication,
+      updateJob,
       addCategory,
       deleteJob,
       deleteJobs,
@@ -308,6 +318,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addJob,
     addEvent,
     updateApplication,
+    updateJob,
     addCategory,
     deleteJob,
     deleteJobs,
