@@ -1,4 +1,19 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+
 
 import {
   Sheet,
@@ -30,7 +45,14 @@ export function JobDrawer({
   jobId: string | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { jobs, applicationForJob, eventsFor, updateApplication } = useStore();
+  const {
+    jobs,
+    applicationForJob,
+    eventsFor,
+    updateApplication,
+    deleteJob,
+    deleteEvent,
+  } = useStore();
   const job = jobs.find((j) => j.id === jobId);
   const application = job ? applicationForJob(job.id) : undefined;
 
