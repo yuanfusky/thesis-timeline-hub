@@ -1,4 +1,4 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Trash2 } from "lucide-react";
 
 import { fmtLong } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,13 @@ const ACCENT: Partial<Record<EventType, string>> = {
   "Marked To Apply": "bg-status-toapply",
 };
 
-export function Timeline({ events }: { events: ApplicationEvent[] }) {
+export function Timeline({
+  events,
+  onDelete,
+}: {
+  events: ApplicationEvent[];
+  onDelete?: (eventId: string) => void;
+}) {
   if (events.length === 0) {
     return (
       <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
