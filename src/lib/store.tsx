@@ -296,6 +296,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const resetToSeed = useCallback(() => setState(initialState), []);
 
+  const exportData = useCallback(
+    () =>
+      JSON.stringify(
+        { version: 1, exported_at: new Date().toISOString(), data: state },
+        null,
+        2,
+      ),
+    [state],
+  );
+
+  const importData = useCallback((raw: string) => {
+    const parsed = JSON.parse(raw) as
+      | { data?: Partial<StoreState> }
+      | Partial<StoreState>;
+    const data = (("data" in parsed && parsed.data ? parsed.data : parsed) ??
+      {}) as Partial<StoreState>;
+    if (!Array.isArray(data.jobs) || !Array.isArray(data.applications)) {
+      throw new Error("Invalid backup file");
+    }
+    const next: StoreState = {
+      jobs: data.jobs,
+      applications: data.applications,
+      events: Array.isArray(data.events) ? data.events : [],
+      categories: Array.isArray(data.categories) && data.categories.length
+        ? data.categories
+        : DEFAULT_CATEGORIES,
+    };
+    setState(next);
+    return { jobs: next.jobs.length, events: next.events.length };
+  }, []);
+
   const value = useMemo<StoreContextValue>(() => {
     const sorted = sortEvents(state.events);
     return {
@@ -311,6 +342,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       assignCategories,
       deleteEvent,
       resetToSeed,
+      exportData,
+      importData,
       applicationForJob: (jobId) => state.applications.find((a) => a.job_id === jobId),
       eventsFor: (applicationId) =>
         sorted.filter((e) => e.application_id === applicationId),
