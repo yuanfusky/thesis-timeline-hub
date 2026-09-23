@@ -409,3 +409,91 @@ function FilterSelect({
     </Select>
   );
 }
+
+function BulkCategoryMenu({
+  all,
+  onApply,
+}: {
+  all: string[];
+  onApply: (categories: string[], mode: "add" | "replace") => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [draft, setDraft] = useState("");
+
+  const toggle = (c: string) =>
+    setPicked((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
+
+  const apply = (mode: "add" | "replace") => {
+    if (picked.length === 0) return;
+    onApply(picked, mode);
+    setPicked([]);
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 text-xs">
+          <Plus className="size-3.5" /> Category
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64 p-2">
+        <div className="flex gap-1.5 pb-2">
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const clean = draft.trim();
+                if (!clean) return;
+                setPicked((p) => (p.includes(clean) ? p : [...p, clean]));
+                setDraft("");
+              }
+            }}
+            placeholder="New category…"
+            className="h-8 text-xs"
+          />
+        </div>
+        <ScrollArea className="h-52">
+          <div className="space-y-0.5 pr-2">
+            {Array.from(new Set([...picked, ...all])).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => toggle(c)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent",
+                  picked.includes(c) && "font-medium",
+                )}
+              >
+                {c}
+                {picked.includes(c) && <Check className="size-3.5" />}
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
+        <div className="mt-2 flex gap-1.5 border-t border-border pt-2">
+          <Button
+            size="sm"
+            className="h-7 flex-1 text-xs"
+            disabled={picked.length === 0}
+            onClick={() => apply("add")}
+          >
+            Add
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 flex-1 text-xs"
+            disabled={picked.length === 0}
+            onClick={() => apply("replace")}
+          >
+            Replace
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
