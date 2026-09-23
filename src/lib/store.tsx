@@ -295,6 +295,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateApplication,
       addCategory,
       deleteJob,
+      deleteJobs,
+      assignCategories,
       deleteEvent,
       resetToSeed,
       applicationForJob: (jobId) => state.applications.find((a) => a.job_id === jobId),
