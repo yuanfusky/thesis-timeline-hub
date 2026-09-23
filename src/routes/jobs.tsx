@@ -1,10 +1,26 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Check, Plus, Search, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { JobDrawer } from "@/components/JobDrawer";
 import { CategoryTag, PriorityTag, StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -53,8 +69,9 @@ type SortKey = "company" | "deadline" | "release" | "applied" | "priority";
 const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 } as const;
 
 function JobsPage() {
-  const { jobs, applications, categories } = useStore();
+  const { jobs, applications, categories, deleteJobs, assignCategories } = useStore();
   const [openJob, setOpenJob] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
   const [tab, setTab] = useState<(typeof TABS)[number]>("All");
   const [q, setQ] = useState("");
   const [company, setCompany] = useState("all");
@@ -128,6 +145,9 @@ function JobsPage() {
     return m;
   }, [applications]);
 
+  const allSelected = rows.length > 0 && rows.every(({ job }) => selected.includes(job.id));
+  const someSelected = selected.length > 0 && !allSelected;
+
   const toggleSort = (key: SortKey) => {
     if (sort === key) setAsc((v) => !v);
     else {
@@ -182,10 +202,74 @@ function JobsPage() {
         />
       </div>
 
+      {selected.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-accent/40 px-3 py-2">
+          <span className="text-xs font-medium">{selected.length} selected</span>
+          <div className="flex-1" />
+          <BulkCategoryMenu
+            all={categories}
+            onApply={(cats, mode) => {
+              assignCategories(selected, cats, mode);
+              toast.success(
+                mode === "replace"
+                  ? `Categories set for ${selected.length} jobs`
+                  : `Categories added to ${selected.length} jobs`,
+              );
+              setSelected([]);
+            }}
+          />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 text-xs text-destructive">
+                <Trash2 className="size-3.5" /> Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {selected.length} jobs?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This removes the selected positions and their full event timelines. This
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    deleteJobs(selected);
+                    toast.success(`${selected.length} jobs deleted`);
+                    setSelected([]);
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setSelected([])}
+          >
+            <X className="size-3.5" /> Clear
+          </Button>
+        </div>
+      )}
+
       <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
-        <table className="w-full min-w-[980px] text-left text-sm">
+        <table className="w-full min-w-[1020px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-[11px] tracking-wide text-muted-foreground uppercase">
+              <th className="w-9 px-3 py-2">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={(v) =>
+                    setSelected(v ? rows.map(({ job }) => job.id) : [])
+                  }
+                  aria-label="Select all"
+                />
+              </th>
               <Th onClick={() => toggleSort("company")}>Company</Th>
               <Th>Job Title</Th>
               <Th>Category</Th>
@@ -205,6 +289,17 @@ function JobsPage() {
                 onClick={() => setOpenJob(job.id)}
                 className="cursor-pointer transition-colors hover:bg-accent/50"
               >
+                <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={selected.includes(job.id)}
+                    onCheckedChange={(v) =>
+                      setSelected((s) =>
+                        v ? [...s, job.id] : s.filter((id) => id !== job.id),
+                      )
+                    }
+                    aria-label={`Select ${job.title}`}
+                  />
+                </td>
                 <td className="px-3 py-2.5 font-medium whitespace-nowrap">{job.company}</td>
                 <td className="max-w-64 truncate px-3 py-2.5">{job.title}</td>
                 <td className="px-3 py-2.5">
@@ -249,7 +344,7 @@ function JobsPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-3 py-12 text-center text-xs text-muted-foreground">
+                <td colSpan={11} className="px-3 py-12 text-center text-xs text-muted-foreground">
                   No jobs match these filters.
                 </td>
               </tr>
@@ -312,5 +407,93 @@ function FilterSelect({
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+function BulkCategoryMenu({
+  all,
+  onApply,
+}: {
+  all: string[];
+  onApply: (categories: string[], mode: "add" | "replace") => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [draft, setDraft] = useState("");
+
+  const toggle = (c: string) =>
+    setPicked((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
+
+  const apply = (mode: "add" | "replace") => {
+    if (picked.length === 0) return;
+    onApply(picked, mode);
+    setPicked([]);
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 text-xs">
+          <Plus className="size-3.5" /> Category
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64 p-2">
+        <div className="flex gap-1.5 pb-2">
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const clean = draft.trim();
+                if (!clean) return;
+                setPicked((p) => (p.includes(clean) ? p : [...p, clean]));
+                setDraft("");
+              }
+            }}
+            placeholder="New category…"
+            className="h-8 text-xs"
+          />
+        </div>
+        <ScrollArea className="h-52">
+          <div className="space-y-0.5 pr-2">
+            {Array.from(new Set([...picked, ...all])).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => toggle(c)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent",
+                  picked.includes(c) && "font-medium",
+                )}
+              >
+                {c}
+                {picked.includes(c) && <Check className="size-3.5" />}
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
+        <div className="mt-2 flex gap-1.5 border-t border-border pt-2">
+          <Button
+            size="sm"
+            className="h-7 flex-1 text-xs"
+            disabled={picked.length === 0}
+            onClick={() => apply("add")}
+          >
+            Add
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 flex-1 text-xs"
+            disabled={picked.length === 0}
+            onClick={() => apply("replace")}
+          >
+            Replace
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

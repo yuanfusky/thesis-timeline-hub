@@ -62,6 +62,12 @@ interface StoreContextValue extends StoreState {
   updateApplication: (applicationId: string, patch: Partial<Application>) => void;
   addCategory: (name: string) => void;
   deleteJob: (jobId: string) => void;
+  deleteJobs: (jobIds: string[]) => void;
+  assignCategories: (
+    jobIds: string[],
+    categories: string[],
+    mode: "add" | "replace",
+  ) => void;
   deleteEvent: (eventId: string) => void;
   applicationForJob: (jobId: string) => Application | undefined;
   eventsFor: (applicationId: string) => ApplicationEvent[];
@@ -234,6 +240,45 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const deleteJobs = useCallback((jobIds: string[]) => {
+    const ids = new Set(jobIds);
+    setState((s) => {
+      const appIds = new Set(
+        s.applications.filter((a) => ids.has(a.job_id)).map((a) => a.id),
+      );
+      return {
+        ...s,
+        jobs: s.jobs.filter((j) => !ids.has(j.id)),
+        applications: s.applications.filter((a) => !ids.has(a.job_id)),
+        events: s.events.filter((e) => !appIds.has(e.application_id)),
+      };
+    });
+  }, []);
+
+  const assignCategories = useCallback(
+    (jobIds: string[], categories: string[], mode: "add" | "replace") => {
+      const ids = new Set(jobIds);
+      const now = new Date().toISOString();
+      setState((s) => ({
+        ...s,
+        categories: Array.from(new Set([...s.categories, ...categories])),
+        jobs: s.jobs.map((j) =>
+          ids.has(j.id)
+            ? {
+                ...j,
+                categories:
+                  mode === "replace"
+                    ? [...categories]
+                    : Array.from(new Set([...j.categories, ...categories])),
+                updated_at: now,
+              }
+            : j,
+        ),
+      }));
+    },
+    [],
+  );
+
   const deleteEvent = useCallback((eventId: string) => {
     setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }));
   }, []);
@@ -250,6 +295,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateApplication,
       addCategory,
       deleteJob,
+      deleteJobs,
+      assignCategories,
       deleteEvent,
       resetToSeed,
       applicationForJob: (jobId) => state.applications.find((a) => a.job_id === jobId),
@@ -263,6 +310,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updateApplication,
     addCategory,
     deleteJob,
+    deleteJobs,
+    assignCategories,
     deleteEvent,
     resetToSeed,
   ]);
