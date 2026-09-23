@@ -69,8 +69,9 @@ type SortKey = "company" | "deadline" | "release" | "applied" | "priority";
 const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 } as const;
 
 function JobsPage() {
-  const { jobs, applications, categories } = useStore();
+  const { jobs, applications, categories, deleteJobs, assignCategories } = useStore();
   const [openJob, setOpenJob] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
   const [tab, setTab] = useState<(typeof TABS)[number]>("All");
   const [q, setQ] = useState("");
   const [company, setCompany] = useState("all");
