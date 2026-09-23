@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CategoryPicker } from "@/components/CategoryPicker";
+import { SuggestInput } from "@/components/SuggestInput";
 import { useStore } from "@/lib/store";
 import { PRIORITIES, type Priority } from "@/lib/types";
 
@@ -38,7 +39,9 @@ const empty = {
 };
 
 export function AddJobDialog() {
-  const { categories, addJob, addCategory } = useStore();
+  const { categories, jobs, addJob, addCategory } = useStore();
+  const companyOptions = jobs.map((j) => j.company);
+  const locationOptions = jobs.map((j) => j.location);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
   const [selected, setSelected] = useState<string[]>([]);
@@ -98,16 +101,18 @@ export function AddJobDialog() {
             />
           </Field>
           <Field label="Company">
-            <Input
+            <SuggestInput
               value={form.company}
-              onChange={(e) => set("company", e.target.value)}
+              onChange={(v) => set("company", v)}
+              options={companyOptions}
               placeholder="Volvo Group"
             />
           </Field>
           <Field label="Location">
-            <Input
+            <SuggestInput
               value={form.location}
-              onChange={(e) => set("location", e.target.value)}
+              onChange={(v) => set("location", v)}
+              options={locationOptions}
               placeholder="Göteborg"
             />
           </Field>
