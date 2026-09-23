@@ -334,7 +334,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         events: s.events.filter((e) => !appIds.includes(e.application_id)),
       };
     });
-    void supabase.from("jobs").delete().eq("id", jobId);
+    void (async () => {
+      const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+      if (error) toast.error("Could not delete this job from the cloud");
+    })();
   }, []);
 
   const deleteJobs = useCallback((jobIds: string[]) => {
