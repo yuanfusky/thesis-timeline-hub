@@ -61,6 +61,8 @@ interface StoreContextValue extends StoreState {
   addEvent: (applicationId: string, input: NewEventInput) => void;
   updateApplication: (applicationId: string, patch: Partial<Application>) => void;
   addCategory: (name: string) => void;
+  deleteJob: (jobId: string) => void;
+  deleteEvent: (eventId: string) => void;
   applicationForJob: (jobId: string) => Application | undefined;
   eventsFor: (applicationId: string) => ApplicationEvent[];
   resetToSeed: () => void;
@@ -220,6 +222,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const deleteJob = useCallback((jobId: string) => {
+    setState((s) => {
+      const appIds = s.applications.filter((a) => a.job_id === jobId).map((a) => a.id);
+      return {
+        ...s,
+        jobs: s.jobs.filter((j) => j.id !== jobId),
+        applications: s.applications.filter((a) => a.job_id !== jobId),
+        events: s.events.filter((e) => !appIds.includes(e.application_id)),
+      };
+    });
+  }, []);
+
+  const deleteEvent = useCallback((eventId: string) => {
+    setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }));
+  }, []);
+
   const resetToSeed = useCallback(() => setState(initialState), []);
 
   const value = useMemo<StoreContextValue>(() => {
@@ -231,12 +249,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addEvent,
       updateApplication,
       addCategory,
+      deleteJob,
+      deleteEvent,
       resetToSeed,
       applicationForJob: (jobId) => state.applications.find((a) => a.job_id === jobId),
       eventsFor: (applicationId) =>
         sorted.filter((e) => e.application_id === applicationId),
     };
-  }, [state, addJob, addEvent, updateApplication, addCategory, resetToSeed]);
+  }, [
+    state,
+    addJob,
+    addEvent,
+    updateApplication,
+    addCategory,
+    deleteJob,
+    deleteEvent,
+    resetToSeed,
+  ]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

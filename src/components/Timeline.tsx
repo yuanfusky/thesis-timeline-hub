@@ -1,4 +1,4 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Trash2 } from "lucide-react";
 
 import { fmtLong } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,13 @@ const ACCENT: Partial<Record<EventType, string>> = {
   "Marked To Apply": "bg-status-toapply",
 };
 
-export function Timeline({ events }: { events: ApplicationEvent[] }) {
+export function Timeline({
+  events,
+  onDelete,
+}: {
+  events: ApplicationEvent[];
+  onDelete?: (eventId: string) => void;
+}) {
   if (events.length === 0) {
     return (
       <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
@@ -31,7 +37,7 @@ export function Timeline({ events }: { events: ApplicationEvent[] }) {
       {events.map((e, i) => {
         const primary = e.received_at ?? e.event_date;
         return (
-          <li key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
+          <li key={e.id} className="group relative flex gap-3 pb-5 last:pb-0">
             <div className="flex flex-col items-center">
               <span
                 className={cn(
@@ -59,6 +65,16 @@ export function Timeline({ events }: { events: ApplicationEvent[] }) {
                 </p>
               )}
             </div>
+            {onDelete && (
+              <button
+                type="button"
+                aria-label={`Delete ${e.event_type} event`}
+                onClick={() => onDelete(e.id)}
+                className="mt-0.5 rounded-md p-1 text-muted-foreground opacity-0 transition hover:bg-muted hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            )}
           </li>
         );
       })}

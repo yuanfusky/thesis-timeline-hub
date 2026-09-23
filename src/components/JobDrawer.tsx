@@ -1,4 +1,19 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+
 
 import {
   Sheet,
@@ -30,7 +45,14 @@ export function JobDrawer({
   jobId: string | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { jobs, applicationForJob, eventsFor, updateApplication } = useStore();
+  const {
+    jobs,
+    applicationForJob,
+    eventsFor,
+    updateApplication,
+    deleteJob,
+    deleteEvent,
+  } = useStore();
   const job = jobs.find((j) => j.id === jobId);
   const application = job ? applicationForJob(job.id) : undefined;
 
@@ -135,7 +157,13 @@ export function JobDrawer({
                   <h3 className="text-sm font-semibold">Application Timeline</h3>
                   <AddEventDialog applicationId={application.id} />
                 </div>
-                <Timeline events={eventsFor(application.id)} />
+                <Timeline
+                  events={eventsFor(application.id)}
+                  onDelete={(id) => {
+                    deleteEvent(id);
+                    toast.success("Event deleted");
+                  }}
+                />
               </section>
 
               {job.notes && (
@@ -155,6 +183,42 @@ export function JobDrawer({
                   </p>
                 </section>
               )}
+
+              <section className="border-t border-border pt-5">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" /> Delete job
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this job?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {job.title} at {job.company} and its whole application timeline
+                        will be removed. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => {
+                          deleteJob(job.id);
+                          onOpenChange(false);
+                          toast.success("Job deleted");
+                        }}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </section>
             </div>
           </>
         )}
