@@ -307,7 +307,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...s,
       jobs: s.jobs.map((j) => (j.id === jobId ? { ...j, ...patch, updated_at: now } : j)),
     }));
-    void supabase.from("jobs").update(patch).eq("id", jobId);
+    void (async () => {
+      await supabase.from("jobs").update(patch).eq("id", jobId);
+    })();
   }, []);
 
   const addCategory = useCallback(
