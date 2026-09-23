@@ -145,6 +145,9 @@ function JobsPage() {
     return m;
   }, [applications]);
 
+  const allSelected = rows.length > 0 && rows.every(({ job }) => selected.includes(job.id));
+  const someSelected = selected.length > 0 && !allSelected;
+
   const toggleSort = (key: SortKey) => {
     if (sort === key) setAsc((v) => !v);
     else {
