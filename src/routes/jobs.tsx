@@ -286,6 +286,17 @@ function JobsPage() {
                 onClick={() => setOpenJob(job.id)}
                 className="cursor-pointer transition-colors hover:bg-accent/50"
               >
+                <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={selected.includes(job.id)}
+                    onCheckedChange={(v) =>
+                      setSelected((s) =>
+                        v ? [...s, job.id] : s.filter((id) => id !== job.id),
+                      )
+                    }
+                    aria-label={`Select ${job.title}`}
+                  />
+                </td>
                 <td className="px-3 py-2.5 font-medium whitespace-nowrap">{job.company}</td>
                 <td className="max-w-64 truncate px-3 py-2.5">{job.title}</td>
                 <td className="px-3 py-2.5">
