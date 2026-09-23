@@ -341,7 +341,7 @@ function JobsPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-3 py-12 text-center text-xs text-muted-foreground">
+                <td colSpan={11} className="px-3 py-12 text-center text-xs text-muted-foreground">
                   No jobs match these filters.
                 </td>
               </tr>
