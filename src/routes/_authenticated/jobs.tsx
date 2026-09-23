@@ -34,7 +34,7 @@ import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { PRIORITIES, type WorkflowState } from "@/lib/types";
 
-export const Route = createFileRoute("/jobs")({
+export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({
     meta: [
       { title: "Jobs — Master Thesis Tracker" },

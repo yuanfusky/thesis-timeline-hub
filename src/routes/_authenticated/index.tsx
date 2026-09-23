@@ -9,7 +9,7 @@ import { daysUntil, fmtLong, relativeDay } from "@/lib/dates";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Dashboard — Master Thesis Tracker" },
