@@ -173,5 +173,14 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-feature-settings: "cv05", "ss01";
+    -webkit-font-smoothing: antialiased;
   }
 }
+
+@utility num {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
