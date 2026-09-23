@@ -360,6 +360,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     assignCategories,
     deleteEvent,
     resetToSeed,
+    exportData,
+    importData,
   ]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

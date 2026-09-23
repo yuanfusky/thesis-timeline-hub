@@ -65,9 +65,10 @@ export function AppShell({
             );
           })}
         </nav>
-        <p className="px-5 py-4 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="px-5 pb-3 pt-4 text-[11px] leading-relaxed text-muted-foreground">
           Job → Application → Timeline of events
         </p>
+        <BackupMenu />
       </aside>
 
       <div className="flex min-w-0 flex-col">
