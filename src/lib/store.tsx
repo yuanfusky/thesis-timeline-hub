@@ -294,7 +294,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           a.id === applicationId ? { ...a, ...patch } : a,
         ),
       }));
-      void supabase.from("applications").update(patch).eq("id", applicationId);
+      void (async () => {
+        await supabase.from("applications").update(patch).eq("id", applicationId);
+      })();
     },
     [],
   );
