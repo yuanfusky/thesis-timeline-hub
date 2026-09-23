@@ -62,6 +62,12 @@ interface StoreContextValue extends StoreState {
   updateApplication: (applicationId: string, patch: Partial<Application>) => void;
   addCategory: (name: string) => void;
   deleteJob: (jobId: string) => void;
+  deleteJobs: (jobIds: string[]) => void;
+  assignCategories: (
+    jobIds: string[],
+    categories: string[],
+    mode: "add" | "replace",
+  ) => void;
   deleteEvent: (eventId: string) => void;
   applicationForJob: (jobId: string) => Application | undefined;
   eventsFor: (applicationId: string) => ApplicationEvent[];
