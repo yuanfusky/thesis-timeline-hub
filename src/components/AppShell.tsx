@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { BarChart3, Briefcase, LayoutDashboard, Menu, X } from "lucide-react";
 
 import { AddJobDialog } from "@/components/AddJobDialog";
+import { BackupMenu } from "@/components/BackupMenu";
 import { cn } from "@/lib/utils";
 
 const NAV = [
