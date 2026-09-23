@@ -1,394 +1,383 @@
-# Thesis Track Pro
+# Master Thesis Job Tracker — V1 Product Requirements Document
 
-Build a responsive web application called Master Thesis Tracker.
+## 1. Product Overview
 
-This is a personal CRM for managing Master Thesis job opportunities and application processes.
+### Product Name
+Master Thesis Tracker
 
-The app should feel like a modern productivity tool such as Linear, Notion, or a lightweight CRM, rather than a traditional HR system.
+### Product Goal
+Build a personal visual CRM for managing Master Thesis opportunities from discovery to final outcome.
 
-The most important product concept is:
+The product should answer five questions quickly:
 
-A Job and an Application Event are different entities.
+1. What thesis opportunities have I found?
+2. Which ones do I still need to apply to?
+3. Which applications are currently active?
+4. What has happened in each application process, and when?
+5. What should I do next?
 
-Do NOT model interview, offer, or rejection as simple independent columns such as result and result_date.
+The product should not behave like a simple spreadsheet. It should model the application process as a sequence of events over time.
 
-Instead, every application should have an event timeline.
+---
 
-Main Navigation
+# 2. Core User Workflow
 
-Create three main sections:
+The main workflow is:
 
-Dashboard
+Discover Job  
+→ Save Job  
+→ Decide to Apply  
+→ Submit Application  
+→ Receive Interview Invitation  
+→ Attend Interview(s)  
+→ Receive Offer / Rejection / Withdraw
 
-Jobs
+Each job has relatively static information.
 
-Analytics
+Each application has a dynamic timeline.
 
-Use a clean left sidebar navigation.
+These two concepts must remain separate in the data model.
 
-Data Model
+---
 
-Create these main entities.
+# 3. Information Architecture
 
-Job
+The product contains four main views:
 
-Fields:
+## 3.1 Dashboard
 
-id
+Purpose:
 
-title
+Provide an immediate overview of the thesis search.
 
-company
+Display:
 
-location
-
-application_url
-
-release_date
-
-deadline
-
-categories
-
-priority
-
-notes
-
-job_description
-
-created_at
-
-updated_at
-
-categories must support multiple tags.
-
-Initial categories:
-
-Applied ML
-Machine Learning
-Sensor Fusion
-Robotics
-SLAM
-Computer Vision
-LLM
-NLP
-RAG
-Signal Processing
-Communication
-Data Engineering
-ML Engineering
-Bayesian / Probabilistic ML
-Embedded / Edge AI
-Industrial AI
-Other
-
-Users must also be able to create custom categories.
-
-Priority values:
-
-High
-Medium
-Low
-
-Application
-
-Fields:
-
-id
-
-job_id
-
-applied_at
-
-workflow_state
-
-next_action
-
-next_action_date
-
-last_activity_at
-
-Workflow states:
-
-Saved
-To Apply
-Applied
-Interview
-Offer
-Rejected
-Withdrawn
-
-ApplicationEvent
-
-Fields:
-
-id
-
-application_id
-
-event_type
-
-received_at
-
-event_date
-
-notes
-
-created_at
-
-Important:
-
-received_at means when I received information.
-
-event_date means when the actual event occurs.
+- Total tracked jobs
+- Jobs to apply
+- Applications submitted
+- Active interviews
+- Offers
+- Rejections
+- Upcoming deadlines
+- Action needed
 
 Example:
 
-Interview Invitation
+Tracked: 42  
+To Apply: 8  
+Applied: 20  
+Interview: 4  
+Offer: 1
 
-received_at:
-2026-09-28
+### Action Needed
 
-event_date:
-2026-10-03
+Examples:
 
-This means I received the invitation on September 28 and the interview happens on October 3.
+- Volvo — deadline in 2 days
+- Ericsson — interview in 3 days
+- Saab — saved 8 days ago, no action taken
+- Siemens Energy — waiting for response for 18 days
 
-Do not merge these two dates.
+---
 
-Suggested event types:
+## 3.2 Jobs
 
-Job Saved
-Marked To Apply
-Application Submitted
-Interview Invitation
-Interview Round 1
-Interview Round 2
-Technical Interview
-HR Interview
-Case / Assignment
-Follow-up Sent
-Offer Received
-Rejection Received
-Application Withdrawn
-Other
+Primary database/table for all thesis opportunities.
 
-Dashboard
+Recommended columns:
 
-Create a clean overview.
+- Company
+- Job title
+- Location
+- Categories
+- Release date
+- Deadline
+- Applied date
+- Current status
+- Priority
+- Next action
 
-At the top display KPI cards:
+Optional columns can be hidden to keep the table compact.
 
-Tracked Jobs
-To Apply
-Applied
-Interviewing
-Offers
+Supported views:
 
-Below that create:
-
-Action Needed
-
-Display urgent or upcoming items such as:
-
-application deadlines
-
-upcoming interviews
-
-next actions
-
-jobs marked To Apply but not yet submitted
-
-Example items:
-
-Volvo — Deadline in 2 days — Apply
-
-Ericsson — Interview in 3 days — Prepare
-
-Saab — To Apply — No action yet
-
-Recent Activity
-
-Display recent ApplicationEvents in chronological order.
-
-Example:
-
-Today
-Ericsson — Interview invitation
-
-Yesterday
-Volvo — Application submitted
-
-Sep 20
-Saab — Job saved
-
-Jobs Page
-
-This should be the primary working interface.
-
-Create a clean table.
-
-Columns:
-
-Company
-Job Title
-Category
-Location
-Released
-Deadline
-Applied
-Status
-Priority
-Next Action
-
-Allow:
-
-Search
-Filter
-Sort
+- All
+- Saved
+- To Apply
+- Applied
+- Interview
+- Offer
+- Rejected
 
 Filters:
 
-Company
-Location
-Category
-Status
-Priority
+- Company
+- Location
+- Category
+- Status
+- Priority
 
-Create quick status tabs:
+Sorting:
 
-All
-Saved
-To Apply
-Applied
-Interview
-Offer
-Rejected
+- Release date
+- Deadline
+- Applied date
+- Last activity
 
-Make table rows clickable.
+Search should support job title and company.
 
-Job Detail Drawer
+---
 
-When clicking a job, open a right-side drawer.
+# 4. Data Model
 
-Show:
+## 4.1 Job
 
-Company
-Job Title
-Location
-Categories
-Priority
-Application URL
-
-Dates:
-
-Release Date
-Deadline
-Applied Date
-
-Current Status
-
-Next Action
-
-Notes
-
-Job Description
-
-Application Timeline
-
-This timeline is one of the most important parts of the interface.
-
-Display application events vertically.
-
-Example:
-
-Sep 23
-Application submitted
-
-Sep 28
-Interview invitation received
-
-Interview scheduled:
-Oct 3
-
-Oct 3
-Interview Round 1
-
-Oct 20
-Offer received
-
-If both received_at and event_date exist, display both clearly.
-
-Add Job
-
-Create a prominent + Add Job button.
-
-Form fields:
-
-Job Title
-Company
-Location
-Application URL
-Release Date
-Deadline
-Categories
-Priority
-Notes
-Job Description
-
-Initial state:
-
-Saved
-or
-To Apply
-
-Add Event
-
-Inside the Job Detail Drawer add:
-
-+ Add Event
-
-Open a form.
+A Job represents the thesis opportunity itself.
 
 Fields:
 
-Event Type
-Received Date
-Event Date
-Notes
+### id
+Unique identifier.
 
-Make the form context-aware.
+### title
+Example:
 
-For example:
+Master Thesis — AI-Based Fault Diagnosis
 
-If Event Type = Application Submitted
+Required.
 
-show:
+### company
+Example:
 
-Application Date
+Ericsson  
+Volvo  
+Siemens Energy
 
-If Event Type = Interview Invitation
+Required.
 
-show:
+### location
+Example:
 
-Received Date
-Interview Date
+Stockholm  
+Göteborg  
+Linköping  
+Finspång
 
-If Event Type = Rejection Received
+Optional.
 
-show:
+### application_url
+Original job posting URL.
 
-Received Date
+Optional but recommended.
 
-If Event Type = Offer Received
+### release_date
+Date when the job was published.
 
-show:
+Optional.
 
-Received Date
+### deadline
+Application deadline.
 
-Status Automation
+Optional.
 
-Update the current workflow state based on meaningful events.
+### categories
+Multi-select tag field.
+
+A job can belong to multiple categories.
+
+Initial categories:
+
+- Applied ML
+- Machine Learning
+- Sensor Fusion
+- Robotics
+- SLAM
+- Computer Vision
+- LLM
+- NLP
+- RAG
+- Signal Processing
+- Communication
+- Data Engineering
+- ML Engineering
+- Bayesian / Probabilistic ML
+- Embedded / Edge AI
+- Industrial AI
+- Other
+
+Users must be able to create custom categories.
+
+### priority
+
+Values:
+
+- High
+- Medium
+- Low
+
+Optional.
+
+### notes
+Free text notes.
+
+### job_description
+Optional saved snapshot of the original job description.
+
+This is useful because external job postings may later disappear.
+
+### created_at
+Automatically generated.
+
+### updated_at
+Automatically generated.
+
+---
+
+# 4.2 Application
+
+An Application represents my relationship with a Job.
+
+One Job should normally have one Application.
+
+Fields:
+
+### id
+
+Unique identifier.
+
+### job_id
+
+Foreign key pointing to Job.
+
+### applied_at
+
+Date the application was submitted.
+
+Null if not yet applied.
+
+### workflow_state
+
+Internal application stage.
+
+Possible values:
+
+- Saved
+- To Apply
+- Applied
+- Interview
+- Offer
+- Rejected
+- Withdrawn
+
+### next_action
+
+Free text.
+
+Examples:
+
+Prepare CV  
+Write cover letter  
+Prepare SLAM interview  
+Follow up  
+Wait for response
+
+### next_action_date
+
+Optional date associated with the next action.
+
+### last_activity_at
+
+Automatically derived from the latest event.
+
+---
+
+# 4.3 Application Event
+
+This is the most important part of the system.
+
+Application status changes must be recorded as events instead of storing only one final result field.
+
+Schema:
+
+### id
+
+Unique identifier.
+
+### application_id
+
+Foreign key pointing to Application.
+
+### event_type
+
+Suggested values:
+
+- Job Saved
+- Marked To Apply
+- Application Submitted
+- Interview Invitation
+- Interview Round 1
+- Interview Round 2
+- Technical Interview
+- HR Interview
+- Case / Assignment
+- Follow-up Sent
+- Offer Received
+- Rejection Received
+- Application Withdrawn
+- Other
+
+### received_at
+
+When I received the message or notification.
+
+Example:
+
+Interview invitation received on September 28.
+
+### event_date
+
+When the actual event happens.
+
+Example:
+
+Interview scheduled for October 3.
+
+Important:
+
+`received_at` and `event_date` must be separate fields.
+
+Example:
+
+Event type:
+Interview Invitation
+
+Received at:
+2026-09-28
+
+Event date:
+2026-10-03
+
+This means the invitation was received on September 28 and the interview occurs on October 3.
+
+### notes
+
+Optional details about the event.
+
+Example:
+
+First interview with hiring manager and technical supervisor.
+
+### created_at
+
+Automatically generated.
+
+---
+
+# 5. Status Logic
+
+The user should not need to manually update the status repeatedly.
+
+Current status should be synchronized with application events whenever possible.
 
 Examples:
 
@@ -407,138 +396,341 @@ Rejection Received
 Application Withdrawn
 → Withdrawn
 
-The system should avoid inconsistent states between the timeline and the displayed current status.
+The latest meaningful event determines the current state.
 
-Analytics
+Manual override may be allowed if needed.
 
-Create a simple analytics page.
+---
 
-Include:
+# 6. Job Detail View
 
-Application Funnel
+Clicking a job should open a side drawer or detail page.
 
-Tracked
-Applied
-Interview
+The top section contains:
+
+Company  
+Job Title  
+Location  
+Categories  
+Priority  
+Application URL
+
+Dates:
+
+Release Date  
+Deadline  
+Applied Date
+
+Current Status
+
+Next Action
+
+---
+
+## Application Timeline
+
+The most visually important section.
+
+Example:
+
+Sep 21  
+Application submitted
+
+Sep 28  
+Interview invitation received
+
+Oct 3  
+Interview round 1
+
+Oct 7  
+Second interview invitation received
+
+Oct 11  
+Interview round 2
+
+Oct 20  
+Offer received
+
+Timeline entries must display both relevant dates when appropriate.
+
+For example:
+
+Interview Invitation
+
+Received:
+Sep 28
+
+Interview:
+Oct 3
+
+---
+
+# 7. Add Job Flow
+
+A prominent:
+
++ Add Job
+
+button should open a form.
+
+Fields:
+
+Job Title  
+Company  
+Location  
+Application URL  
+Release Date  
+Deadline  
+Categories  
+Priority  
+Notes  
+Job Description
+
+At creation time, the user should also be able to choose:
+
+Saved
+
+or
+
+To Apply
+
+as the initial state.
+
+---
+
+# 8. Add Application Event Flow
+
+Inside a job detail view:
+
++ Add Event
+
+Button.
+
+Form fields:
+
+Event Type  
+Received Date  
+Event Date  
+Notes
+
+Fields should react to the event type.
+
+For example:
+
+Rejection Received
+
+Only Received Date is normally necessary.
+
+Interview Invitation
+
+Both:
+
+Received Date  
+Interview Date
+
+should be visible.
+
+Application Submitted
+
+Only Applied Date is required.
+
+---
+
+# 9. Dashboard
+
+## KPI Cards
+
+Show:
+
+Tracked Jobs  
+To Apply  
+Applied  
+Interviewing  
+Offers
+
+Rejections can appear as a smaller secondary metric.
+
+---
+
+## Action Needed
+
+Rank items based on urgency.
+
+Examples:
+
+Deadline approaching  
+Interview approaching  
+No action after saving job  
+Waiting unusually long for response
+
+---
+
+## Recent Activity
+
+Chronological feed.
+
+Example:
+
+Today  
+Ericsson — Interview invitation
+
+Yesterday  
+Volvo — Application submitted
+
+Sep 20  
+Saab — Job saved
+
+---
+
+# 10. Analytics
+
+Analytics can exist in V1 but should remain simple.
+
+Metrics:
+
+### Application Funnel
+
+Tracked  
+Applied  
+Interview  
 Offer
 
-Applications by Category
+### Applications by Category
 
-Interview rate by category
+Example:
 
-Average time to first response
+Applied ML — 12  
+Sensor Fusion — 6  
+Robotics — 5
 
-Calculate first response time as:
+### Interview Rate by Category
 
-first meaningful response date - applied date
+Interviews / Applications
 
-Do not overcomplicate analytics in the first version.
+### Response Time
 
-Design Direction
+Calculate:
 
-Use a modern minimal visual style.
+First response date − Applied date
 
-Desktop-first but responsive.
+Possible future aggregation:
 
-Use:
+Average response time by company.
 
-clear typography
+---
 
-restrained spacing
+# 11. UX Principles
 
-subtle borders
+The visual design should feel like a modern personal productivity tool rather than a corporate HR system.
 
-compact tables
+Design principles:
 
-rounded category tags
-
-status badges
-
-minimal use of color
+- Clean
+- Minimal
+- Information-dense
+- Calm
+- Fast to scan
+- Desktop-first but responsive
+- Dark mode optional
 
 Avoid excessive cards.
 
-Use status colors consistently.
+The Jobs table should remain the primary information interface.
 
-Suggested semantic colors:
+Use color only to communicate status.
 
-Saved — neutral gray
-To Apply — blue
-Applied — purple
-Interview — amber / orange
-Offer — green
-Rejected — muted red
-Withdrawn — gray
+Status examples:
 
-The application timeline should feel visually polished and easy to scan.
+Saved — neutral  
+To Apply — blue  
+Applied — purple  
+Interview — orange  
+Offer — green  
+Rejected — muted red / gray
 
-Seed Data
+Categories should use small pill-style tags.
 
-Add several realistic example jobs so the UI is populated on first load.
+---
 
-Example companies:
+# 12. MVP Scope
 
-Ericsson
-Volvo Group
-Siemens Energy
-Saab
+V1 should include:
 
-Example thesis topics:
+- Add/edit/delete jobs
+- Multi-category tags
+- Job database
+- Job detail drawer
+- Application event timeline
+- Status synchronization
+- Filters
+- Search
+- Sort
+- Dashboard
+- Basic analytics
+- Local or database persistence
 
-AI for Radio Networks
+---
 
-Machine Learning for Autonomous Systems
+# 13. Out of Scope for V1
 
-AI-Based Fault Diagnosis for Gas Turbines
+Do not implement yet:
 
-Sensor Fusion for Autonomous Navigation
+- Automatic job scraping
+- Automatic application submission
+- AI CV generation
+- AI cover letter generation
+- Automatic job matching
+- Gmail parsing
+- Browser extensions
+- Calendar integrations
+- External job-board integrations
 
-Use locations such as:
+These can be added later after the core workflow is stable.
 
-Stockholm
-Göteborg
-Finspång
-Linköping
+---
 
-Include examples with different states:
+# 14. Future Features
 
-Saved
-To Apply
-Applied
-Interview
-Rejected
+Possible V2 features:
 
-Include at least one job with a multi-step interview timeline.
+### JD Snapshot
+Save full job description so that information remains available after the posting disappears.
 
-Important Product Constraint
+### AI Job Analysis
+Extract:
 
-Do not build this as a spreadsheet clone.
+- Required skills
+- Preferred skills
+- Thesis topic
+- Technical keywords
+- Match with my experience
 
-The core interaction model should be:
+### Interview Preparation
+Generate:
 
-Job → Application → Timeline of Events
+- Likely technical questions
+- Relevant coursework
+- Relevant projects
+- Concepts to review
 
-The timeline must preserve the history of the application process instead of only showing the latest result.
+### Email Integration
+Automatically detect:
 
-This project was built with [Lovable](https://lovable.dev).
+Interview invitations  
+Rejections  
+Offers
 
-**Live app**: https://thesis-timeline-hub.lovable.app
+and create corresponding application events.
 
-## Build with Lovable
+### Calendar Integration
+Add interviews and deadlines to calendar.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/bc3370a1-7dbc-4f61-88a9-99ee98765c16).
+### Smart Insights
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+Examples:
 
-## Development
+Your Applied ML applications have a higher interview rate.
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You usually receive the first response after 11 days.
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+You currently have three applications with no response for more than two weeks.
