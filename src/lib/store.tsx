@@ -399,7 +399,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const deleteEvent = useCallback((eventId: string) => {
     setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }));
-    void supabase.from("application_events").delete().eq("id", eventId);
+    void (async () => {
+      const { error } = await supabase.from("application_events").delete().eq("id", eventId);
+      if (error) toast.error("Could not delete this event from the cloud");
+    })();
   }, []);
 
   const exportData = useCallback(
