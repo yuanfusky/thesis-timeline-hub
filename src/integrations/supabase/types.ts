@@ -14,7 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      application_events: {
+        Row: {
+          application_id: string
+          created_at: string
+          event_date: string | null
+          event_type: string
+          id: string
+          notes: string
+          received_at: string | null
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          event_date?: string | null
+          event_type: string
+          id?: string
+          notes?: string
+          received_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          event_date?: string | null
+          event_type?: string
+          id?: string
+          notes?: string
+          received_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_events_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          id: string
+          job_id: string
+          last_activity_at: string
+          next_action: string
+          next_action_date: string | null
+          user_id: string
+          workflow_state: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          last_activity_at?: string
+          next_action?: string
+          next_action_date?: string | null
+          user_id?: string
+          workflow_state?: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          last_activity_at?: string
+          next_action?: string
+          next_action_date?: string | null
+          user_id?: string
+          workflow_state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          application_url: string
+          categories: string[]
+          company: string
+          created_at: string
+          deadline: string | null
+          id: string
+          job_description: string
+          location: string
+          notes: string
+          priority: string
+          release_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_url?: string
+          categories?: string[]
+          company?: string
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          job_description?: string
+          location?: string
+          notes?: string
+          priority?: string
+          release_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          application_url?: string
+          categories?: string[]
+          company?: string
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          job_description?: string
+          location?: string
+          notes?: string
+          priority?: string
+          release_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
