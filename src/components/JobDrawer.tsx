@@ -32,11 +32,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddEventDialog } from "@/components/AddEventDialog";
+import { CategoryPicker } from "@/components/CategoryPicker";
+import { SuggestInput } from "@/components/SuggestInput";
+import { Textarea } from "@/components/ui/textarea";
 import { Timeline } from "@/components/Timeline";
 import { CategoryTag, PriorityTag, StatusBadge } from "@/components/StatusBadge";
 import { fmtLong, relativeDay } from "@/lib/dates";
 import { useStore } from "@/lib/store";
-import { WORKFLOW_STATES, type WorkflowState } from "@/lib/types";
+import {
+  PRIORITIES,
+  WORKFLOW_STATES,
+  type Priority,
+  type WorkflowState,
+} from "@/lib/types";
 
 export function JobDrawer({
   jobId,
@@ -47,13 +55,17 @@ export function JobDrawer({
 }) {
   const {
     jobs,
+    categories,
     applicationForJob,
     eventsFor,
     updateApplication,
     updateJob,
+    addCategory,
     deleteJob,
     deleteEvent,
   } = useStore();
+  const companyOptions = jobs.map((j) => j.company);
+  const locationOptions = jobs.map((j) => j.location);
   const job = jobs.find((j) => j.id === jobId);
   const application = job ? applicationForJob(job.id) : undefined;
 
@@ -116,12 +128,33 @@ export function JobDrawer({
                 </div>
                 <div className="sm:col-span-2">
                   <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Location
+                    Job Title
                   </Label>
                   <Input
-                    placeholder="City / remote"
+                    value={job.title}
+                    onChange={(e) => updateJob(job.id, { title: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Company
+                  </Label>
+                  <SuggestInput
+                    value={job.company}
+                    options={companyOptions}
+                    placeholder="Company"
+                    onChange={(v) => updateJob(job.id, { company: v })}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Location
+                  </Label>
+                  <SuggestInput
                     value={job.location}
-                    onChange={(e) => updateJob(job.id, { location: e.target.value })}
+                    options={locationOptions}
+                    placeholder="City / remote"
+                    onChange={(v) => updateJob(job.id, { location: v })}
                   />
                 </div>
                 <div>
@@ -212,6 +245,37 @@ export function JobDrawer({
                     }
                   />
                 </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Priority
+                  </Label>
+                  <Select
+                    value={job.priority}
+                    onValueChange={(v) => updateJob(job.id, { priority: v as Priority })}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRIORITIES.map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Categories
+                  </Label>
+                  <CategoryPicker
+                    all={categories}
+                    selected={job.categories}
+                    onChange={(next) => updateJob(job.id, { categories: next })}
+                    onCreate={addCategory}
+                  />
+                </div>
               </section>
 
               <section>
@@ -228,23 +292,25 @@ export function JobDrawer({
                 />
               </section>
 
-              {job.notes && (
-                <section>
-                  <h3 className="mb-1.5 text-sm font-semibold">Notes</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {job.notes}
-                  </p>
-                </section>
-              )}
+              <section>
+                <h3 className="mb-1.5 text-sm font-semibold">Notes</h3>
+                <Textarea
+                  rows={3}
+                  value={job.notes}
+                  placeholder="Contact person, requirements, thoughts…"
+                  onChange={(e) => updateJob(job.id, { notes: e.target.value })}
+                />
+              </section>
 
-              {job.job_description && (
-                <section>
-                  <h3 className="mb-1.5 text-sm font-semibold">Job Description</h3>
-                  <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
-                    {job.job_description}
-                  </p>
-                </section>
-              )}
+              <section>
+                <h3 className="mb-1.5 text-sm font-semibold">Job Description</h3>
+                <Textarea
+                  rows={5}
+                  value={job.job_description}
+                  placeholder="Paste the job description here…"
+                  onChange={(e) => updateJob(job.id, { job_description: e.target.value })}
+                />
+              </section>
 
               <section className="border-t border-border pt-5">
                 <AlertDialog>
