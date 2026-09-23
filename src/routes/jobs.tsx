@@ -1,0 +1,316 @@
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowUpDown, Search } from "lucide-react";
+
+import { AppShell } from "@/components/AppShell";
+import { JobDrawer } from "@/components/JobDrawer";
+import { CategoryTag, PriorityTag, StatusBadge } from "@/components/StatusBadge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { fmt, relativeDay } from "@/lib/dates";
+import { useStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { PRIORITIES, type WorkflowState } from "@/lib/types";
+
+export const Route = createFileRoute("/jobs")({
+  head: () => ({
+    meta: [
+      { title: "Jobs — Master Thesis Tracker" },
+      {
+        name: "description",
+        content:
+          "Search, filter and sort every tracked master thesis position, with status, deadlines and next actions in one compact table.",
+      },
+      { property: "og:title", content: "Jobs — Master Thesis Tracker" },
+      {
+        property: "og:description",
+        content:
+          "Search, filter and sort every tracked master thesis position, with status, deadlines and next actions in one compact table.",
+      },
+    ],
+  }),
+  component: JobsPage,
+});
+
+const TABS: ("All" | WorkflowState)[] = [
+  "All",
+  "Saved",
+  "To Apply",
+  "Applied",
+  "Interview",
+  "Offer",
+  "Rejected",
+];
+
+type SortKey = "company" | "deadline" | "release" | "applied" | "priority";
+
+const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 } as const;
+
+function JobsPage() {
+  const { jobs, applications, categories } = useStore();
+  const [openJob, setOpenJob] = useState<string | null>(null);
+  const [tab, setTab] = useState<(typeof TABS)[number]>("All");
+  const [q, setQ] = useState("");
+  const [company, setCompany] = useState("all");
+  const [location, setLocation] = useState("all");
+  const [category, setCategory] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const [sort, setSort] = useState<SortKey>("deadline");
+  const [asc, setAsc] = useState(true);
+
+  const appByJob = useMemo(
+    () => new Map(applications.map((a) => [a.job_id, a])),
+    [applications],
+  );
+
+  const companies = useMemo(
+    () => Array.from(new Set(jobs.map((j) => j.company))).sort(),
+    [jobs],
+  );
+  const locations = useMemo(
+    () => Array.from(new Set(jobs.map((j) => j.location).filter(Boolean))).sort(),
+    [jobs],
+  );
+  const usedCategories = useMemo(
+    () => categories.filter((c) => jobs.some((j) => j.categories.includes(c))),
+    [categories, jobs],
+  );
+
+  const rows = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    const list = jobs
+      .map((job) => ({ job, app: appByJob.get(job.id) }))
+      .filter(({ job, app }) => {
+        if (!app) return false;
+        if (tab !== "All" && app.workflow_state !== tab) return false;
+        if (company !== "all" && job.company !== company) return false;
+        if (location !== "all" && job.location !== location) return false;
+        if (category !== "all" && !job.categories.includes(category)) return false;
+        if (priority !== "all" && job.priority !== priority) return false;
+        if (
+          term &&
+          ![job.title, job.company, job.location, job.notes, ...job.categories]
+            .join(" ")
+            .toLowerCase()
+            .includes(term)
+        )
+          return false;
+        return true;
+      });
+
+    const val = ({ job, app }: (typeof list)[number]) => {
+      switch (sort) {
+        case "company":
+          return job.company.toLowerCase();
+        case "release":
+          return job.release_date ?? "9999";
+        case "applied":
+          return app?.applied_at ?? "9999";
+        case "priority":
+          return String(PRIORITY_ORDER[job.priority]);
+        default:
+          return job.deadline ?? "9999";
+      }
+    };
+    return list.sort((a, b) => (val(a) < val(b) ? (asc ? -1 : 1) : val(a) > val(b) ? (asc ? 1 : -1) : 0));
+  }, [jobs, appByJob, tab, q, company, location, category, priority, sort, asc]);
+
+  const counts = useMemo(() => {
+    const m: Record<string, number> = { All: applications.length };
+    for (const a of applications)
+      m[a.workflow_state] = (m[a.workflow_state] ?? 0) + 1;
+    return m;
+  }, [applications]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sort === key) setAsc((v) => !v);
+    else {
+      setSort(key);
+      setAsc(true);
+    }
+  };
+
+  return (
+    <AppShell title="Jobs" subtitle={`${rows.length} of ${jobs.length} positions`}>
+      <div className="flex flex-wrap items-center gap-1 border-b border-border pb-2">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+              tab === t
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-accent",
+            )}
+          >
+            {t}
+            <span className="ml-1.5 tabular-nums opacity-60">{counts[t] ?? 0}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-52 flex-1">
+          <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search company, title, category…"
+            className="h-8 pl-8 text-xs"
+          />
+        </div>
+        <FilterSelect value={company} onChange={setCompany} label="Company" options={companies} />
+        <FilterSelect value={location} onChange={setLocation} label="Location" options={locations} />
+        <FilterSelect
+          value={category}
+          onChange={setCategory}
+          label="Category"
+          options={usedCategories}
+        />
+        <FilterSelect
+          value={priority}
+          onChange={setPriority}
+          label="Priority"
+          options={[...PRIORITIES]}
+        />
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
+        <table className="w-full min-w-[980px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-[11px] tracking-wide text-muted-foreground uppercase">
+              <Th onClick={() => toggleSort("company")}>Company</Th>
+              <Th>Job Title</Th>
+              <Th>Category</Th>
+              <Th>Location</Th>
+              <Th onClick={() => toggleSort("release")}>Released</Th>
+              <Th onClick={() => toggleSort("deadline")}>Deadline</Th>
+              <Th onClick={() => toggleSort("applied")}>Applied</Th>
+              <Th>Status</Th>
+              <Th onClick={() => toggleSort("priority")}>Priority</Th>
+              <Th>Next Action</Th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.map(({ job, app }) => (
+              <tr
+                key={job.id}
+                onClick={() => setOpenJob(job.id)}
+                className="cursor-pointer transition-colors hover:bg-accent/50"
+              >
+                <td className="px-3 py-2.5 font-medium whitespace-nowrap">{job.company}</td>
+                <td className="max-w-64 truncate px-3 py-2.5">{job.title}</td>
+                <td className="px-3 py-2.5">
+                  <div className="flex gap-1">
+                    {job.categories.slice(0, 2).map((c) => (
+                      <CategoryTag key={c} label={c} />
+                    ))}
+                    {job.categories.length > 2 && (
+                      <span className="text-[11px] text-muted-foreground">
+                        +{job.categories.length - 2}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground">
+                  {job.location || "—"}
+                </td>
+                <td className="num px-3 py-2.5 whitespace-nowrap text-muted-foreground">
+                  {fmt(job.release_date)}
+                </td>
+                <td className="num px-3 py-2.5 whitespace-nowrap">
+                  {fmt(job.deadline)}
+                  {job.deadline && !app?.applied_at && (
+                    <span className="ml-1.5 text-[11px] text-muted-foreground">
+                      {relativeDay(job.deadline)}
+                    </span>
+                  )}
+                </td>
+                <td className="num px-3 py-2.5 whitespace-nowrap text-muted-foreground">
+                  {fmt(app?.applied_at ?? null)}
+                </td>
+                <td className="px-3 py-2.5">
+                  {app && <StatusBadge state={app.workflow_state} />}
+                </td>
+                <td className="px-3 py-2.5">
+                  <PriorityTag priority={job.priority} />
+                </td>
+                <td className="max-w-56 truncate px-3 py-2.5 text-xs text-muted-foreground">
+                  {app?.next_action || "—"}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={10} className="px-3 py-12 text-center text-xs text-muted-foreground">
+                  No jobs match these filters.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <JobDrawer jobId={openJob} onOpenChange={(o) => !o && setOpenJob(null)} />
+    </AppShell>
+  );
+}
+
+function Th({
+  children,
+  onClick,
+}: {
+  children?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <th className="px-3 py-2 font-medium">
+      {onClick ? (
+        <button
+          onClick={onClick}
+          className="inline-flex items-center gap-1 uppercase hover:text-foreground"
+        >
+          {children}
+          <ArrowUpDown className="size-3 opacity-50" />
+        </button>
+      ) : (
+        children
+      )}
+    </th>
+  );
+}
+
+function FilterSelect({
+  value,
+  onChange,
+  label,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+  options: string[];
+}) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-8 w-auto min-w-28 text-xs">
+        <SelectValue placeholder={label} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All {label.toLowerCase()}</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
