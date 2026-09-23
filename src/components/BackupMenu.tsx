@@ -22,7 +22,7 @@ export function BackupMenu() {
 
   const handleFile = async (file: File) => {
     try {
-      const result = importData(await file.text());
+      const result = await importData(await file.text());
       toast.success(
         `Imported ${result.jobs} jobs, ${result.events} timeline entries`,
       );
