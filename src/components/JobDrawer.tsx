@@ -157,7 +157,13 @@ export function JobDrawer({
                   <h3 className="text-sm font-semibold">Application Timeline</h3>
                   <AddEventDialog applicationId={application.id} />
                 </div>
-                <Timeline events={eventsFor(application.id)} />
+                <Timeline
+                  events={eventsFor(application.id)}
+                  onDelete={(id) => {
+                    deleteEvent(id);
+                    toast.success("Event deleted");
+                  }}
+                />
               </section>
 
               {job.notes && (
@@ -177,6 +183,42 @@ export function JobDrawer({
                   </p>
                 </section>
               )}
+
+              <section className="border-t border-border pt-5">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" /> Delete job
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this job?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {job.title} at {job.company} and its whole application timeline
+                        will be removed. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => {
+                          deleteJob(job.id);
+                          onOpenChange(false);
+                          toast.success("Job deleted");
+                        }}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </section>
             </div>
           </>
         )}
