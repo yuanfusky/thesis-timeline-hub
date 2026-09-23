@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 import { RESPONSE_EVENTS } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/analytics")({
+export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
       { title: "Analytics — Master Thesis Tracker" },

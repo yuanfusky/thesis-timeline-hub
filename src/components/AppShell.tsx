@@ -3,6 +3,9 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { BarChart3, Briefcase, LayoutDashboard, Menu, X } from "lucide-react";
 
 import { AddJobDialog } from "@/components/AddJobDialog";
+import { BackupMenu } from "@/components/BackupMenu";
+import { MigrateLocalBanner } from "@/components/MigrateLocalBanner";
+import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -22,6 +25,7 @@ export function AppShell({
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [navOpen, setNavOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[232px_1fr]">
@@ -65,9 +69,23 @@ export function AppShell({
             );
           })}
         </nav>
-        <p className="px-5 py-4 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="px-5 pb-3 pt-4 text-[11px] leading-relaxed text-muted-foreground">
           Job → Application → Timeline of events
         </p>
+        <BackupMenu />
+        {user && (
+          <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2.5">
+            <span className="truncate text-[11px] text-muted-foreground">
+              {user.email}
+            </span>
+            <button
+              className="shrink-0 text-[11px] text-muted-foreground hover:text-foreground"
+              onClick={() => void signOut()}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
       </aside>
 
       <div className="flex min-w-0 flex-col">
@@ -89,7 +107,10 @@ export function AppShell({
           </div>
           <AddJobDialog />
         </header>
-        <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">{children}</main>
+        <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
+          <MigrateLocalBanner />
+          {children}
+        </main>
       </div>
     </div>
   );
