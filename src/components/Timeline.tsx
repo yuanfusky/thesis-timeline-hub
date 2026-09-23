@@ -37,7 +37,7 @@ export function Timeline({
       {events.map((e, i) => {
         const primary = e.received_at ?? e.event_date;
         return (
-          <li key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
+          <li key={e.id} className="group relative flex gap-3 pb-5 last:pb-0">
             <div className="flex flex-col items-center">
               <span
                 className={cn(
@@ -65,6 +65,16 @@ export function Timeline({
                 </p>
               )}
             </div>
+            {onDelete && (
+              <button
+                type="button"
+                aria-label={`Delete ${e.event_type} event`}
+                onClick={() => onDelete(e.id)}
+                className="mt-0.5 rounded-md p-1 text-muted-foreground opacity-0 transition hover:bg-muted hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            )}
           </li>
         );
       })}
