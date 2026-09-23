@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 import {
@@ -294,7 +296,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           a.id === applicationId ? { ...a, ...patch } : a,
         ),
       }));
-      void supabase.from("applications").update(patch).eq("id", applicationId);
+      void (async () => {
+        await supabase.from("applications").update(patch).eq("id", applicationId);
+      })();
     },
     [],
   );
@@ -305,7 +309,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...s,
       jobs: s.jobs.map((j) => (j.id === jobId ? { ...j, ...patch, updated_at: now } : j)),
     }));
-    void supabase.from("jobs").update(patch).eq("id", jobId);
+    void (async () => {
+      await supabase.from("jobs").update(patch).eq("id", jobId);
+    })();
   }, []);
 
   const addCategory = useCallback(
@@ -330,7 +336,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         events: s.events.filter((e) => !appIds.includes(e.application_id)),
       };
     });
-    void supabase.from("jobs").delete().eq("id", jobId);
+    void (async () => {
+      const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+      if (error) toast.error("Could not delete this job from the cloud");
+    })();
   }, []);
 
   const deleteJobs = useCallback((jobIds: string[]) => {
@@ -346,7 +355,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         events: s.events.filter((e) => !appIds.has(e.application_id)),
       };
     });
-    void supabase.from("jobs").delete().in("id", jobIds);
+    void (async () => {
+      const { error } = await supabase.from("jobs").delete().in("id", jobIds);
+      if (error) toast.error("Could not delete these jobs from the cloud");
+    })();
   }, []);
 
   const assignCategories = useCallback(
@@ -389,7 +401,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const deleteEvent = useCallback((eventId: string) => {
     setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }));
-    void supabase.from("application_events").delete().eq("id", eventId);
+    void (async () => {
+      const { error } = await supabase.from("application_events").delete().eq("id", eventId);
+      if (error) toast.error("Could not delete this event from the cloud");
+    })();
   }, []);
 
   const exportData = useCallback(
