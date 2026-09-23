@@ -199,10 +199,74 @@ function JobsPage() {
         />
       </div>
 
+      {selected.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-accent/40 px-3 py-2">
+          <span className="text-xs font-medium">{selected.length} selected</span>
+          <div className="flex-1" />
+          <BulkCategoryMenu
+            all={categories}
+            onApply={(cats, mode) => {
+              assignCategories(selected, cats, mode);
+              toast.success(
+                mode === "replace"
+                  ? `Categories set for ${selected.length} jobs`
+                  : `Categories added to ${selected.length} jobs`,
+              );
+              setSelected([]);
+            }}
+          />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 text-xs text-destructive">
+                <Trash2 className="size-3.5" /> Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {selected.length} jobs?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This removes the selected positions and their full event timelines. This
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    deleteJobs(selected);
+                    toast.success(`${selected.length} jobs deleted`);
+                    setSelected([]);
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setSelected([])}
+          >
+            <X className="size-3.5" /> Clear
+          </Button>
+        </div>
+      )}
+
       <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
-        <table className="w-full min-w-[980px] text-left text-sm">
+        <table className="w-full min-w-[1020px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-[11px] tracking-wide text-muted-foreground uppercase">
+              <th className="w-9 px-3 py-2">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={(v) =>
+                    setSelected(v ? rows.map(({ job }) => job.id) : [])
+                  }
+                  aria-label="Select all"
+                />
+              </th>
               <Th onClick={() => toggleSort("company")}>Company</Th>
               <Th>Job Title</Th>
               <Th>Category</Th>
