@@ -73,6 +73,8 @@ interface StoreContextValue extends StoreState {
   applicationForJob: (jobId: string) => Application | undefined;
   eventsFor: (applicationId: string) => ApplicationEvent[];
   resetToSeed: () => void;
+  exportData: () => string;
+  importData: (raw: string) => { jobs: number; events: number };
 }
 
 const StoreContext = createContext<StoreContextValue | null>(null);
