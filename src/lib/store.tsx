@@ -353,7 +353,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         events: s.events.filter((e) => !appIds.has(e.application_id)),
       };
     });
-    void supabase.from("jobs").delete().in("id", jobIds);
+    void (async () => {
+      const { error } = await supabase.from("jobs").delete().in("id", jobIds);
+      if (error) toast.error("Could not delete these jobs from the cloud");
+    })();
   }, []);
 
   const assignCategories = useCallback(
