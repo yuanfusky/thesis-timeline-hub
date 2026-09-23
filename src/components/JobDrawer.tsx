@@ -50,6 +50,7 @@ export function JobDrawer({
     applicationForJob,
     eventsFor,
     updateApplication,
+    updateJob,
     deleteJob,
     deleteEvent,
   } = useStore();
@@ -100,6 +101,67 @@ export function JobDrawer({
 
             <div className="space-y-6 px-6 py-5">
               <section className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Application URL
+                  </Label>
+                  <Input
+                    type="url"
+                    placeholder="https://…"
+                    value={job.application_url}
+                    onChange={(e) =>
+                      updateJob(job.id, { application_url: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Location
+                  </Label>
+                  <Input
+                    placeholder="City / remote"
+                    value={job.location}
+                    onChange={(e) => updateJob(job.id, { location: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Release Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={job.release_date ?? ""}
+                    onChange={(e) =>
+                      updateJob(job.id, { release_date: e.target.value || null })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Deadline
+                  </Label>
+                  <Input
+                    type="date"
+                    value={job.deadline ?? ""}
+                    onChange={(e) =>
+                      updateJob(job.id, { deadline: e.target.value || null })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Applied Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={application.applied_at ?? ""}
+                    onChange={(e) =>
+                      updateApplication(application.id, {
+                        applied_at: e.target.value || null,
+                      })
+                    }
+                  />
+                </div>
                 <div>
                   <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                     Current Status
