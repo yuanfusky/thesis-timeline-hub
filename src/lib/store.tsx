@@ -310,6 +310,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updateApplication,
     addCategory,
     deleteJob,
+    deleteJobs,
+    assignCategories,
     deleteEvent,
     resetToSeed,
   ]);
