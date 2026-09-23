@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 import {
