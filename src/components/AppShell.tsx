@@ -38,7 +38,7 @@ export function AppShell({
         <div className="flex items-center justify-between px-5 py-5">
           <div>
             <div className="text-sm font-semibold tracking-tight">JobTrack</div>
-            <div className="text-xs text-muted-foreground">Job tracker</div>
+            <div className="text-xs text-muted-foreground">Make it till fake it</div>
           </div>
           <button
             className="text-muted-foreground lg:hidden"
