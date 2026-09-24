@@ -12,17 +12,17 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in · Master Thesis Tracker" },
+      { title: "Sign in · JobTrack" },
       {
         name: "description",
         content:
-          "Sign in to your Master Thesis Tracker account to manage thesis opportunities and application timelines.",
+          "Sign in to your JobTrack account to manage job opportunities and application timelines.",
       },
-      { property: "og:title", content: "Sign in · Master Thesis Tracker" },
+      { property: "og:title", content: "Sign in · JobTrack" },
       {
         property: "og:description",
         content:
-          "Sign in to your Master Thesis Tracker account to manage thesis opportunities and application timelines.",
+          "Sign in to your JobTrack account to manage job opportunities and application timelines.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -77,7 +77,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-lg font-semibold tracking-tight">Master Thesis Tracker</h1>
+          <h1 className="text-lg font-semibold tracking-tight">JobTrack</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in to sync your jobs across devices.
           </p>

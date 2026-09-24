@@ -10,17 +10,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
-      { title: "Analytics — Master Thesis Tracker" },
+      { title: "Analytics — JobTrack" },
       {
         name: "description",
         content:
-          "Application funnel, applications by category, interview rate and average time to first response across thesis applications.",
+          "Application funnel, applications by category, interview rate and average time to first response across job applications.",
       },
-      { property: "og:title", content: "Analytics — Master Thesis Tracker" },
+      { property: "og:title", content: "Analytics — JobTrack" },
       {
         property: "og:description",
         content:
-          "Application funnel, applications by category, interview rate and average time to first response across thesis applications.",
+          "Application funnel, applications by category, interview rate and average time to first response across job applications.",
       },
     ],
   }),
