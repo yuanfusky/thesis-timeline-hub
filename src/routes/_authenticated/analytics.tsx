@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/analytics")({
       {
         property: "og:description",
         content:
-          "Application funnel, applications by category, interview rate and average time to first response across thesis applications.",
+          "Application funnel, applications by category, interview rate and average time to first response across job applications.",
       },
     ],
   }),
