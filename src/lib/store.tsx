@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -113,6 +114,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [state, setState] = useState<StoreState>(emptyState);
   const [ready, setReady] = useState(false);
+  const jobUpdateQueues = useRef(new Map<string, Promise<void>>());
+  const applicationUpdateQueues = useRef(new Map<string, Promise<void>>());
 
   const load = useCallback(async () => {
     if (!user) {
@@ -296,23 +299,76 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           a.id === applicationId ? { ...a, ...patch } : a,
         ),
       }));
-      void (async () => {
-        await supabase.from("applications").update(patch).eq("id", applicationId);
-      })();
+
+      if (!user) return;
+      const previous = applicationUpdateQueues.current.get(applicationId);
+      const request = (previous ?? Promise.resolve())
+        .catch(() => undefined)
+        .then(async () => {
+          const { error } = await supabase
+            .from("applications")
+            .update(patch)
+            .eq("id", applicationId)
+            .eq("user_id", user.id);
+          if (error) throw error;
+        });
+      let queued: Promise<void>;
+      queued = request
+        .catch(async () => {
+          toast.error("Could not save this application change");
+          if (applicationUpdateQueues.current.get(applicationId) === queued) {
+            await load();
+          }
+        })
+        .finally(() => {
+          if (applicationUpdateQueues.current.get(applicationId) === queued) {
+            applicationUpdateQueues.current.delete(applicationId);
+          }
+        });
+      applicationUpdateQueues.current.set(applicationId, queued);
     },
-    [],
+    [user, load],
   );
 
-  const updateJob = useCallback((jobId: string, patch: Partial<Job>) => {
-    const now = new Date().toISOString();
-    setState((s) => ({
-      ...s,
-      jobs: s.jobs.map((j) => (j.id === jobId ? { ...j, ...patch, updated_at: now } : j)),
-    }));
-    void (async () => {
-      await supabase.from("jobs").update(patch).eq("id", jobId);
-    })();
-  }, []);
+  const updateJob = useCallback(
+    (jobId: string, patch: Partial<Job>) => {
+      const now = new Date().toISOString();
+      setState((s) => ({
+        ...s,
+        jobs: s.jobs.map((j) =>
+          j.id === jobId ? { ...j, ...patch, updated_at: now } : j,
+        ),
+      }));
+
+      if (!user) return;
+      const previous = jobUpdateQueues.current.get(jobId);
+      const request = (previous ?? Promise.resolve())
+        .catch(() => undefined)
+        .then(async () => {
+          const { error } = await supabase
+            .from("jobs")
+            .update(patch)
+            .eq("id", jobId)
+            .eq("user_id", user.id);
+          if (error) throw error;
+        });
+      let queued: Promise<void>;
+      queued = request
+        .catch(async () => {
+          toast.error("Could not save this job change");
+          if (jobUpdateQueues.current.get(jobId) === queued) {
+            await load();
+          }
+        })
+        .finally(() => {
+          if (jobUpdateQueues.current.get(jobId) === queued) {
+            jobUpdateQueues.current.delete(jobId);
+          }
+        });
+      jobUpdateQueues.current.set(jobId, queued);
+    },
+    [user, load],
+  );
 
   const addCategory = useCallback(
     (name: string) => {
