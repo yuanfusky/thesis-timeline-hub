@@ -225,17 +225,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       void (async () => {
         if (!user) return;
-        await supabase.from("jobs").insert({ ...job, user_id: user.id });
-        await supabase.from("applications").insert({ ...application, user_id: user.id });
-        await supabase
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .insert({ ...job, user_id: user.id });
+        if (jobError) {
+          toast.error("Could not save this job to the cloud");
+          await load();
+          return;
+        }
+        const { error: applicationError } = await supabase
+          .from("applications")
+          .insert({ ...application, user_id: user.id });
+        const { error: eventsError } = await supabase
           .from("application_events")
           .insert(events.map((e) => ({ ...e, user_id: user.id })));
+        if (applicationError || eventsError) {
+          toast.error("The job was saved, but its application timeline was not complete");
+          await load();
+          return;
+        }
         await persistCategories(input.categories);
       })();
 
       return jobId;
     },
-    [user, persistCategories],
+    [user, persistCategories, load],
   );
 
   const addEvent = useCallback(
@@ -280,15 +294,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       void (async () => {
         if (!user) return;
-        await supabase
+        const { error: eventError } = await supabase
           .from("application_events")
           .insert({ ...event, user_id: user.id });
+        if (eventError) {
+          toast.error("Could not save this timeline event");
+          await load();
+          return;
+        }
         if (Object.keys(appPatch).length) {
-          await supabase.from("applications").update(appPatch).eq("id", applicationId);
+          const { error: applicationError } = await supabase
+            .from("applications")
+            .update(appPatch)
+            .eq("id", applicationId)
+            .eq("user_id", user.id);
+          if (applicationError) {
+            toast.error("The event was saved, but its status could not be updated");
+            await load();
+          }
         }
       })();
     },
-    [user],
+    [user, load],
   );
 
   const updateApplication = useCallback(
@@ -309,7 +336,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             .from("applications")
             .update(patch)
             .eq("id", applicationId)
-            .eq("user_id", user.id);
+            .eq("user_id", user.id)
+            .select("id")
+            .single();
           if (error) throw error;
         });
       let queued: Promise<void>;
@@ -349,7 +378,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             .from("jobs")
             .update(patch)
             .eq("id", jobId)
-            .eq("user_id", user.id);
+            .eq("user_id", user.id)
+            .select("id")
+            .single();
           if (error) throw error;
         });
       let queued: Promise<void>;
@@ -377,7 +408,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setState((s) =>
         s.categories.includes(clean) ? s : { ...s, categories: [...s.categories, clean] },
       );
-      void persistCategories([clean]);
+      void persistCategories([clean]).catch(() => {
+        toast.error("Could not save this category");
+      });
     },
     [persistCategories],
   );
@@ -393,10 +426,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       };
     });
     void (async () => {
-      const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+      const { error } = await supabase
+        .from("jobs")
+        .delete()
+        .eq("id", jobId)
+        .eq("user_id", user?.id ?? "");
       if (error) toast.error("Could not delete this job from the cloud");
     })();
-  }, []);
+  }, [user]);
 
   const deleteJobs = useCallback((jobIds: string[]) => {
     const ids = new Set(jobIds);
@@ -412,10 +449,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       };
     });
     void (async () => {
-      const { error } = await supabase.from("jobs").delete().in("id", jobIds);
+      const { error } = await supabase
+        .from("jobs")
+        .delete()
+        .in("id", jobIds)
+        .eq("user_id", user?.id ?? "");
       if (error) toast.error("Could not delete these jobs from the cloud");
     })();
-  }, []);
+  }, [user]);
 
   const assignCategories = useCallback(
     (jobIds: string[], categories: string[], mode: "add" | "replace") => {
@@ -446,22 +487,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
 
       void (async () => {
-        await persistCategories(categories);
+        try {
+          await persistCategories(categories);
+        } catch {
+          toast.error("Could not save the selected categories");
+          return;
+        }
         for (const u of updates) {
-          await supabase.from("jobs").update({ categories: u.categories }).eq("id", u.id);
+          updateJob(u.id, { categories: u.categories });
         }
       })();
     },
-    [persistCategories],
+    [persistCategories, updateJob],
   );
 
   const deleteEvent = useCallback((eventId: string) => {
     setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }));
     void (async () => {
-      const { error } = await supabase.from("application_events").delete().eq("id", eventId);
+      const { error } = await supabase
+        .from("application_events")
+        .delete()
+        .eq("id", eventId)
+        .eq("user_id", user?.id ?? "");
       if (error) toast.error("Could not delete this event from the cloud");
     })();
-  }, []);
+  }, [user]);
 
   const exportData = useCallback(
     () =>
