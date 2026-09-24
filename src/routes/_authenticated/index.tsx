@@ -12,17 +12,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Master Thesis Tracker" },
+      { title: "Dashboard — JobTrack" },
       {
         name: "description",
         content:
-          "Overview of tracked master thesis opportunities: deadlines, upcoming interviews and recent application activity.",
+          "Overview of tracked job opportunities: deadlines, upcoming interviews and recent application activity.",
       },
-      { property: "og:title", content: "Dashboard — Master Thesis Tracker" },
+      { property: "og:title", content: "Dashboard — JobTrack" },
       {
         property: "og:description",
         content:
-          "Overview of tracked master thesis opportunities: deadlines, upcoming interviews and recent application activity.",
+          "Overview of tracked job opportunities: deadlines, upcoming interviews and recent application activity.",
       },
     ],
   }),

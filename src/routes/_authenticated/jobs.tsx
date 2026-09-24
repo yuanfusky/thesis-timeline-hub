@@ -37,17 +37,17 @@ import { PRIORITIES, type WorkflowState } from "@/lib/types";
 export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({
     meta: [
-      { title: "Jobs — Master Thesis Tracker" },
+      { title: "Jobs — JobTrack" },
       {
         name: "description",
         content:
-          "Search, filter and sort every tracked master thesis position, with status, deadlines and next actions in one compact table.",
+          "Search, filter and sort every tracked job position, with status, deadlines and next actions in one compact table.",
       },
-      { property: "og:title", content: "Jobs — Master Thesis Tracker" },
+      { property: "og:title", content: "Jobs — JobTrack" },
       {
         property: "og:description",
         content:
-          "Search, filter and sort every tracked master thesis position, with status, deadlines and next actions in one compact table.",
+          "Search, filter and sort every tracked job position, with status, deadlines and next actions in one compact table.",
       },
     ],
   }),

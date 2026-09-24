@@ -81,17 +81,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Master Thesis Tracker" },
+      { title: "JobTrack" },
       {
         name: "description",
         content:
-          "A personal CRM for master thesis opportunities: jobs, applications and a full event timeline.",
+          "A personal CRM for job opportunities: jobs, applications and a full event timeline.",
       },
-      { property: "og:title", content: "Master Thesis Tracker" },
+      { property: "og:title", content: "JobTrack" },
       {
         property: "og:description",
         content:
-          "A personal CRM for master thesis opportunities: jobs, applications and a full event timeline.",
+          "A personal CRM for job opportunities: jobs, applications and a full event timeline.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
